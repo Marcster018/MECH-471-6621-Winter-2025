@@ -1,14 +1,10 @@
-
-// note for the Teensy example you should connect the TX pin
-// to the data line of the Dynamixel servo.
-// the RX pin is not connected.
-
-// note that sizeof(int) = 4 bytes on Teensy 3.5
-// versus sizeof(int) = 2 bytes for Arduino Uno/Nano.
-// -> use short int for 2 byte int on Teensy
-// use uint16_t and int16_t
-
 #include "dx.h"
+#include <Arduino.h>
+#include <math.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
+
+#define BIT(a) (1 << (a))
 
 // input u - V
 void write_actuator(int16_t id, float u);
@@ -37,11 +33,36 @@ void PID_controller1();
 float t0; // initial time (s)
 
 void setup() 
-// using setup() as the main() function of this program
-// and not using loop().
-// this is a more general / flexible approach than the typical
-// Arduino setup() and loop() program organization.
 {	
+	Serial.begin(115200);
+	  
+	Serial.print("\nprogram start\n");
+	delay(3000);
+
+	// Timer 0 interrupt configuration
+	// Disable interrupts
+	cli(); 
+	
+	// clear timer1 control register (ie use default values)
+	TCCR0A = 0;
+	TCCR0B = 0;
+
+	// set timer1 prescaler to 64
+	TCCR0B |= BIT(CS01) | BIT(CS00);
+	
+	// initialize timer
+	TCNT0 = 0; 
+
+	// clear previous overflow interrupts
+	TIFR0 |= BIT(TOV0);
+
+	// set timer0 overflow interrupt bit in interrupt mask / register
+	TIMSK0 = 0;
+	TIMSK0 |= BIT(TOIE0);
+	
+	// enable interrupts
+	sei(); 
+	
 	int16_t id, Temp;
 	float t;
 	char ch;
@@ -71,7 +92,7 @@ void setup()
 	
 	// activate dynamixel servos and function library
 	activate_dx();  
-    Serial.print("\n% starting dynamixel servos ...\n");
+	Serial.print("\n% starting dynamixel servos ...\n");
 	
 	// put servo into voltage control / PWM mode
 	id = 1;
@@ -84,9 +105,9 @@ void setup()
 	get_temp(id,Temp); // deg C
 	Serial.print("\n\n% Temp (deg C) = ");
 	Serial.print(Temp);	
-  
+	
 	Serial.print("\n\n");
-  	
+	
 	// might want to set reference position r equal to current 
 	// position to prevent initial sudden movements
 	
@@ -105,7 +126,7 @@ void setup()
 		PID_controller1();		
 		t = micros()*1.0e-6 - t0; // s		
 	}
-
+	
 	// disable robot torque / controller to save battery
 	stop_robot();
 	
