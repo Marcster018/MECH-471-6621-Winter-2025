@@ -43,11 +43,11 @@ void setup()
 	// Disable interrupts
 	cli(); 
 	
-	// clear timer1 control register (ie use default values)
+	// clear timer0 control register (ie use default values)
 	TCCR0A = 0;
 	TCCR0B = 0;
 
-	// set timer1 prescaler to 64
+	// set timer0 prescaler to 64
 	TCCR0B |= BIT(CS01) | BIT(CS00);
 	
 	// initialize timer
