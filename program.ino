@@ -44,21 +44,21 @@ void setup()
 	cli(); 
 	
 	// clear timer0 control register (ie use default values)
-	TCCR0A = 0;
-	TCCR0B = 0;
+	TCCR2A = 0;
+  	TCCR2B = 0;
 
 	// set timer0 prescaler to 64
-	TCCR0B |= BIT(CS01) | BIT(CS00);
+	TCCR2B |= BIT(CS22);
 	
 	// initialize timer
-	TCNT0 = 0; 
+	TCNT2 = 0;
 
 	// clear previous overflow interrupts
-	TIFR0 |= BIT(TOV0);
+	TIFR2 |= BIT(TOV2);
 
 	// set timer0 overflow interrupt bit in interrupt mask / register
-	TIMSK0 = 0;
-	TIMSK0 |= BIT(TOIE0);
+	TIMSK2 = 0;
+	TIMSK2 |= BIT(TOIE2);
 	
 	// enable interrupts
 	sei(); 
